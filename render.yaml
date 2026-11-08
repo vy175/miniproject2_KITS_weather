@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: kits-weather-dashboard
+    env: node
+    region: singapore
+    plan: free
+    branch: main
+    buildCommand: npm install
+    startCommand: node server.js
+    healthCheckPath: /api/health
+    autoDeploy: true
