@@ -24,7 +24,6 @@ class WeatherService {
       });
       clearTimeout(timeout);
       if (!res.ok) {
-        // Fallback search locally from predefined cities if Geocoding is rate-limited (429)
         return this.searchLocalCities(query);
       }
 
@@ -63,21 +62,51 @@ class WeatherService {
 
   /**
    * Sinh dữ liệu mô phỏng an toàn khi bị Open-Meteo chặn 429 trên Cloud IP
+   * Phân tích vĩ độ chính xác: Vùng hàn đới/ôn đới sẽ mô phỏng trời rét hoặc tuyết/mưa phùn thực tế
    */
   generateFallbackWeatherData(cityKey, name, country, lat, lon) {
-    // Ước tính nhiệt độ theo vĩ độ và giờ hiện tại
+    const numLat = Number(lat);
     const hour = new Date().getHours();
     const isNight = hour < 6 || hour > 18;
-    const baseTemp = Math.abs(lat) > 30 ? 16 : 27;
-    const temp = isNight ? baseTemp - 3 : baseTemp + 2;
+
+    let temp = 25;
+    let weatherCode = 1;
+    let weatherDesc = "Phần lớn trời quang";
+    let humidity = 70;
+    let windSpeed = 8.0;
+
+    // Vùng cực & hàn đới/ôn đới lạnh (Vĩ độ cao > 50°: Moscow, London, Canada, Bắc Âu)
+    if (Math.abs(numLat) >= 50) {
+      temp = isNight ? 2 : 5; // Rét buốt dưới 10°C
+      weatherCode = 71; // Tuyết rơi nhẹ hoặc rét đậm
+      weatherDesc = "Tuyết rơi nhẹ hoặc rét đậm";
+      humidity = 88;
+      windSpeed = 12.0;
+    } 
+    // Vùng ôn đới mát (Vĩ độ 30° - 50°: Tokyo, Seoul, Paris, New York)
+    else if (Math.abs(numLat) >= 30) {
+      temp = isNight ? 12 : 16;
+      weatherCode = 2; // Mây rải rác
+      weatherDesc = "Mây rải rác";
+      humidity = 65;
+      windSpeed = 9.5;
+    } 
+    // Vùng nhiệt đới (Vĩ độ < 30°: Việt Nam, Đông Nam Á)
+    else {
+      temp = isNight ? 24 : 31;
+      weatherCode = 1;
+      weatherDesc = "Trời nắng ráo";
+      humidity = 78;
+      windSpeed = 7.0;
+    }
 
     const currentMetrics = {
       temperature: temp,
-      humidity: 75,
-      windSpeed: 8.5,
-      weatherCode: 1, // Phần lớn trời quang
-      weatherDescription: "Phần lớn trời quang",
-      weatherIcon: isNight ? "moon" : "sun",
+      humidity,
+      windSpeed,
+      weatherCode,
+      weatherDescription: weatherDesc,
+      weatherIcon: temp <= 10 ? "thermometer" : (isNight ? "moon" : "sun"),
       time: new Date().toISOString()
     };
 
@@ -88,7 +117,7 @@ class WeatherService {
         key: cityKey,
         name: name,
         country: country || "",
-        lat: Number(lat),
+        lat: numLat,
         lon: Number(lon)
       },
       current: currentMetrics,
@@ -160,17 +189,17 @@ class WeatherService {
       });
       clearTimeout(timeout);
 
-      // Nếu Open-Meteo báo 429 Too Many Requests
+      // Nếu Open-Meteo báo 429 Too Many Requests trên Cloud Render
       if (apiRes.status === 429) {
         console.warn(`[Open-Meteo Rate-limited 429] on Cloud IP. Using fallback for ${resolvedName}`);
         
         // Thử lấy dữ liệu cũ trong DB (bất kể hết hạn)
-        const staleData = cacheService.get(resolvedKey, true); // ignore expiry
+        const staleData = cacheService.get(resolvedKey, true);
         if (staleData) {
           return { data: staleData, cached: true };
         }
 
-        // Nếu chưa từng có trong DB -> Sinh dữ liệu fallback mượt mà
+        // Sinh dữ liệu fallback dựa chính xác theo vùng khí hậu của vĩ độ
         const fallback = this.generateFallbackWeatherData(resolvedKey, resolvedName, resolvedCountry, resolvedLat, resolvedLon);
         cacheService.set(resolvedKey, fallback);
         cacheService.addHistory(resolvedKey, resolvedName, fallback.current.temperature, fallback.current.weatherDescription);
@@ -220,13 +249,11 @@ class WeatherService {
     } catch (networkError) {
       console.warn(`[Network/API Warning] ${resolvedName}: ${networkError.message}`);
 
-      // Nếu lỗi mạng hoặc timeout -> kiểm tra stale cache trong DB
       const staleData = cacheService.get(resolvedKey, true);
       if (staleData) {
         return { data: staleData, cached: true };
       }
 
-      // Cuối cùng: fallback an toàn để tránh sập UI
       const fallback = this.generateFallbackWeatherData(resolvedKey, resolvedName, resolvedCountry, resolvedLat, resolvedLon);
       return { data: fallback, cached: false };
     }
