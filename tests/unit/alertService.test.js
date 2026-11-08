@@ -60,7 +60,7 @@ describe('Unit Test: AlertService (Rule-based Weather Advisory)', () => {
     });
     assert.strictEqual(alert.level, 'success');
     assert.strictEqual(alert.icon, 'check-circle');
-    assert.match(alert.type, /dễ chịu/i);
+    assert.match(alert.type, /thuận lợi/i);
   });
 });
 

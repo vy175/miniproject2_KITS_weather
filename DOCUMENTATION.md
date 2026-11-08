@@ -263,3 +263,4 @@ Hệ thống **Weather Dashboard** đã được kiểm thử toàn diện, đá
 - Mã nguồn phân tầng rõ ràng, sạch sẽ, lưu trữ an toàn tại GitHub.
 - Cơ sở dữ liệu SQLite vận hành bền vững, chống chịu tốt lỗi mạng và giới hạn kết nối.
 - Toàn bộ **11 bài Unit Test** và **9 bài Integration Test** đạt trạng thái **PASS 100%**.
+
