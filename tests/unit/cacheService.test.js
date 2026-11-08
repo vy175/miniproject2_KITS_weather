@@ -45,3 +45,4 @@ describe('Unit Test: CacheService (SQLite Persistence & Operations)', () => {
     assert.strictEqual(notFound, undefined, 'Mục lịch sử đã bị xóa khỏi DB');
   });
 });
+

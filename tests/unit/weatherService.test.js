@@ -33,3 +33,4 @@ describe('Unit Test: WeatherService (Comparison & Validation)', () => {
     assert.ok(typeof result.summary === 'string' && result.summary.length > 0, 'Phải sinh câu nhận định so sánh');
   });
 });
+
