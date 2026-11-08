@@ -40,18 +40,36 @@ class WeatherService {
   }
 
   /**
-   * Fetch weather by Coordinates OR predefined city key
+   * Fetch weather by Coordinates OR predefined city key OR coordinate key (e.g. 23.73_114.68)
    */
   async getWeather({ cityKey, lat, lon, name, country }) {
     let resolvedLat, resolvedLon, resolvedName, resolvedCountry, resolvedKey;
 
-    if (lat !== undefined && lon !== undefined && name) {
+    // 1. Trường hợp truyền tọa độ trực tiếp
+    if (lat !== undefined && lon !== undefined) {
       resolvedLat = Number(lat);
       resolvedLon = Number(lon);
-      resolvedName = name;
+      resolvedName = name || `${resolvedLat.toFixed(2)}, ${resolvedLon.toFixed(2)}`;
       resolvedCountry = country || "";
       resolvedKey = `${resolvedLat.toFixed(2)}_${resolvedLon.toFixed(2)}`;
-    } else if (cityKey) {
+    } 
+    // 2. Trường hợp truyền cityKey dạng tọa độ (VD: 23.73_114.68 do click từ lịch sử)
+    else if (cityKey && cityKey.includes('_')) {
+      const parts = cityKey.split('_');
+      resolvedLat = Number(parts[0]);
+      resolvedLon = Number(parts[1]);
+      resolvedKey = cityKey;
+
+      // Ưu tiên kiểm tra cache để lấy lại tên thành phố
+      const cached = cacheService.get(resolvedKey);
+      if (cached) {
+        return { data: cached, cached: true };
+      }
+      resolvedName = name || `${resolvedLat.toFixed(2)}, ${resolvedLon.toFixed(2)}`;
+      resolvedCountry = country || "";
+    }
+    // 3. Trường hợp truyền cityKey thông thường (hanoi, tokyo...)
+    else if (cityKey) {
       const key = cityKey.toLowerCase();
       const cityInfo = CITIES[key];
       if (!cityInfo) {
@@ -70,7 +88,7 @@ class WeatherService {
       throw err;
     }
 
-    // Check persistent SQLite cache first
+    // Check persistent SQLite cache
     const cachedData = cacheService.get(resolvedKey);
     if (cachedData) {
       return { data: cachedData, cached: true };
