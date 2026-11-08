@@ -3,266 +3,267 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Weather Dashboard (Fullstack Node.js & SQLite)</title>
+  <title>Dự Báo Thời Tiết</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/feather-icons"></script>
 </head>
 <body>
-  <div class="background-decor">
-    <div class="blob blob-1"></div>
-    <div class="blob blob-2"></div>
-  </div>
-
-  <main class="dashboard-card">
+  <div class="app-layout">
     <!-- Header -->
-    <header class="card-header">
-      <div class="header-top">
-        <div class="title-wrap">
-          <i data-feather="cloud-sun" class="header-icon"></i>
-          <h1>Weather Dashboard</h1>
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-icon">
+          <i data-feather="cloud-sun"></i>
         </div>
-        <div id="backendStatus" class="status-badge" title="Tình trạng Backend SQLite">
-          <span class="status-dot"></span>
-          <span id="backendStatusText">Đang kiểm tra server...</span>
-        </div>
+        <span class="brand-name">Thời Tiết</span>
       </div>
-      <p class="subtitle">Fullstack Express.js + SQLite Persistent Cache + Rule-based Alerts</p>
+
+      <nav class="nav-segmented">
+        <button id="tabSingle" class="segment-btn active">Hiện tại</button>
+        <button id="tabCompare" class="segment-btn">So sánh đối đầu</button>
+      </nav>
+
+      <div class="header-actions">
+        <button id="unitToggleBtn" class="unit-pill" title="Chuyển đổi °C và °F">
+          <span class="unit-c active">°C</span>
+          <span class="unit-divider">/</span>
+          <span class="unit-f">°F</span>
+        </button>
+      </div>
     </header>
 
-    <!-- Navigation Tabs: Chế độ Xem đơn vs So sánh -->
-    <nav class="nav-tabs">
-      <button id="tabSingle" class="tab-btn active">
-        <i data-feather="eye"></i> Xem thời tiết
-      </button>
-      <button id="tabCompare" class="tab-btn">
-        <i data-feather="columns"></i> So sánh 2 thành phố
-      </button>
-    </nav>
+    <!-- Offline Notification Banner -->
+    <div id="offlineBanner" class="offline-banner hidden">
+      <i data-feather="wifi-off"></i>
+      <span>Bạn đang ngoại tuyến. Vui lòng kiểm tra lại kết nối mạng.</span>
+    </div>
 
-    <!-- VIEW 1: SINGLE CITY VIEW -->
-    <div id="singleView" class="view-panel">
-      <!-- Controls -->
-      <section class="controls-section">
-        <div class="form-row">
-          <div class="form-group flex-1">
-            <label for="citySelect">
-              <i data-feather="map-pin"></i> Chọn thành phố
-            </label>
-            <select id="citySelect" class="styled-select">
-              <option value="hanoi" selected>Hà Nội (Việt Nam)</option>
-              <option value="danang">Đà Nẵng (Việt Nam)</option>
-              <option value="hcm">TP. Hồ Chí Minh (Việt Nam)</option>
-              <option value="tokyo">Tokyo (Nhật Bản)</option>
-              <option value="seoul">Seoul (Hàn Quốc)</option>
-              <option value="london">London (Vương quốc Anh)</option>
-              <option value="paris">Paris (Pháp)</option>
-              <option value="newyork">New York (Mỹ)</option>
-              <option value="sydney">Sydney (Úc)</option>
-            </select>
-          </div>
-
-          <div class="form-group unit-group">
-            <label>Đơn vị</label>
-            <button id="unitToggleBtn" class="btn btn-unit" title="Chuyển đổi °C / °F">°C</button>
-          </div>
+    <!-- MAIN VIEW 1: SINGLE WEATHER -->
+    <main id="singleView" class="view-container">
+      <!-- Search & Selector Bar -->
+      <section class="search-bar-wrap">
+        <div class="city-selector-box">
+          <i data-feather="map-pin" class="select-icon"></i>
+          <select id="citySelect" class="city-select">
+            <option value="hanoi" selected>Hà Nội, Việt Nam</option>
+            <option value="danang">Đà Nẵng, Việt Nam</option>
+            <option value="hcm">TP. Hồ Chí Minh, Việt Nam</option>
+            <option value="tokyo">Tokyo, Nhật Bản</option>
+            <option value="seoul">Seoul, Hàn Quốc</option>
+            <option value="london">London, Vương quốc Anh</option>
+            <option value="paris">Paris, Pháp</option>
+            <option value="newyork">New York, Mỹ</option>
+            <option value="sydney">Sydney, Úc</option>
+          </select>
+          <i data-feather="chevron-down" class="dropdown-chevron"></i>
         </div>
 
-        <div class="button-group">
-          <button id="refreshBtn" class="btn btn-secondary" title="Làm mới dữ liệu từ server">
-            <i data-feather="refresh-cw"></i> Làm mới
-          </button>
-          <button id="testErrorBtn" class="btn btn-warning" title="Giả lập lỗi Backend 500">
-            <i data-feather="alert-triangle"></i> Test Lỗi BE (500)
-          </button>
+        <div class="history-quick-list" id="historyList">
+          <!-- Rendered dynamically -->
         </div>
       </section>
-
-      <!-- History Chips -->
-      <section class="history-section">
-        <div class="history-header">
-          <span><i data-feather="clock"></i> Tra cứu gần đây (SQLite):</span>
-        </div>
-        <div id="historyList" class="history-tags">
-          <span class="history-empty">Chưa có lịch sử tra cứu</span>
-        </div>
-      </section>
-
-      <!-- Alert Offline -->
-      <div id="offlineBanner" class="alert alert-offline hidden" role="alert">
-        <i data-feather="wifi-off"></i>
-        <span>Bạn đang mất kết nối mạng! Vui lòng kiểm tra lại Internet.</span>
-      </div>
 
       <!-- Loading State -->
-      <div id="loadingState" class="state-container hidden">
-        <div class="spinner"></div>
-        <p>Đang kết nối Backend Server...</p>
+      <div id="loadingState" class="state-view hidden">
+        <div class="loading-spinner"></div>
+        <p>Đang cập nhật thời tiết...</p>
       </div>
 
       <!-- Error State -->
-      <div id="errorState" class="state-container error-box hidden">
-        <i data-feather="alert-circle" class="state-icon icon-error"></i>
-        <h3 id="errorTitle">Không thể lấy dữ liệu</h3>
-        <p id="errorMessage">Đã có lỗi xảy ra.</p>
-        <button id="retryBtn" class="btn btn-primary">
-          <i data-feather="rotate-ccw"></i> Thử lại
-        </button>
+      <div id="errorState" class="state-view error hidden">
+        <div class="error-icon-wrap">
+          <i data-feather="alert-circle"></i>
+        </div>
+        <h3>Không thể tải thời tiết</h3>
+        <p id="errorMessage">Vui lòng kiểm tra kết nối mạng và thử lại.</p>
+        <button id="retryBtn" class="primary-btn">Thử lại</button>
       </div>
 
-      <!-- Weather Content Display -->
-      <div id="weatherContent" class="weather-content">
-        <!-- Smart Weather Alert Banner (Mới nâng cấp) -->
-        <div id="smartAlert" class="smart-alert success">
-          <div class="smart-alert-icon" id="smartAlertIcon">
-            <i data-feather="check-circle"></i>
+      <!-- Weather Data View -->
+      <div id="weatherContent" class="weather-dashboard">
+        <!-- Hero Weather Card -->
+        <section class="hero-card">
+          <div class="hero-header">
+            <div>
+              <h2 class="city-title" id="cityName">Hà Nội</h2>
+              <span class="country-name" id="countryName">Việt Nam</span>
+            </div>
+            <span class="update-label" id="updateTime">--</span>
           </div>
-          <div class="smart-alert-text">
-            <strong id="smartAlertTitle">Thời tiết thuận lợi</strong>
-            <p id="smartAlertMessage">Thời tiết dễ chịu cho các hoạt động ngoài trời.</p>
-          </div>
-        </div>
 
-        <!-- Main Overview -->
-        <div class="weather-main">
-          <div class="cache-badge" id="cacheBadge" title="Nguồn dữ liệu">
-            <i data-feather="database"></i> <span id="cacheText">LIVE</span>
+          <div class="hero-body">
+            <div class="temp-display">
+              <span class="temp-number" id="temperature">--</span>
+              <span class="temp-symbol" id="unitDisplay">°</span>
+            </div>
+            <div class="weather-visual">
+              <div class="weather-icon-circle" id="conditionIconWrap">
+                <i data-feather="sun" class="hero-icon"></i>
+              </div>
+              <span class="weather-phrase" id="weatherDescription">--</span>
+            </div>
           </div>
-          <div class="weather-condition-icon" id="conditionIconWrap">
-            <i data-feather="sun" id="weatherIcon" class="big-icon"></i>
+
+          <!-- Insight & Advisory Pill -->
+          <div id="smartAlert" class="advisory-pill">
+            <i data-feather="info" id="alertIcon"></i>
+            <span id="alertMessage">--</span>
           </div>
-          <div class="weather-temp-wrap">
-            <span class="temp-value" id="temperature">--</span>
-            <span class="temp-unit" id="unitDisplay">°C</span>
-          </div>
-          <div class="weather-desc" id="weatherDescription">--</div>
-          <div class="weather-time" id="updateTime">Cập nhật lúc: --</div>
-        </div>
+        </section>
 
         <!-- Secondary Metrics Grid -->
-        <div class="metrics-grid">
-          <div class="metric-card">
-            <div class="metric-icon humidity"><i data-feather="droplet"></i></div>
-            <div class="metric-info">
-              <span class="metric-label">Độ ẩm</span>
-              <span class="metric-value" id="humidity">-- %</span>
+        <section class="metrics-row">
+          <div class="metric-tile">
+            <div class="metric-top">
+              <span class="metric-name">Độ ẩm</span>
+              <i data-feather="droplet" class="tile-icon"></i>
             </div>
+            <div class="metric-val" id="humidity">--%</div>
+            <span class="metric-sub">Độ ẩm tương đối</span>
           </div>
 
-          <div class="metric-card">
-            <div class="metric-icon wind"><i data-feather="wind"></i></div>
-            <div class="metric-info">
-              <span class="metric-label">Tốc độ gió</span>
-              <span class="metric-value" id="windSpeed">-- km/h</span>
+          <div class="metric-tile">
+            <div class="metric-top">
+              <span class="metric-name">Gió</span>
+              <i data-feather="wind" class="tile-icon"></i>
             </div>
+            <div class="metric-val" id="windSpeed">-- km/h</div>
+            <span class="metric-sub">Tốc độ gió</span>
           </div>
 
-          <div class="metric-card">
-            <div class="metric-icon coord"><i data-feather="compass"></i></div>
-            <div class="metric-info">
-              <span class="metric-label">Tọa độ</span>
-              <span class="metric-value" id="coordinates">--</span>
+          <div class="metric-tile">
+            <div class="metric-top">
+              <span class="metric-name">Độ cao</span>
+              <i data-feather="bar-chart-2" class="tile-icon"></i>
             </div>
+            <div class="metric-val" id="elevation">-- m</div>
+            <span class="metric-sub">So với mực nước biển</span>
           </div>
 
-          <div class="metric-card">
-            <div class="metric-icon elevation"><i data-feather="activity"></i></div>
-            <div class="metric-info">
-              <span class="metric-label">Độ cao địa hình</span>
-              <span class="metric-value" id="elevation">-- m</span>
+          <div class="metric-tile">
+            <div class="metric-top">
+              <span class="metric-name">Tọa độ</span>
+              <i data-feather="compass" class="tile-icon"></i>
             </div>
+            <div class="metric-val" id="coordinates">--</div>
+            <span class="metric-sub">Vĩ độ, Kinh độ</span>
           </div>
-        </div>
+        </section>
       </div>
-    </div>
+    </main>
 
-    <!-- VIEW 2: COMPARISON MODE (VS VIEW) -->
-    <div id="compareView" class="view-panel hidden">
-      <div class="compare-selectors">
-        <div class="form-group flex-1">
-          <label><i data-feather="map-pin"></i> Thành phố 1</label>
-          <select id="compareCity1" class="styled-select">
-            <option value="hanoi" selected>Hà Nội</option>
-            <option value="danang">Đà Nẵng</option>
-            <option value="hcm">TP. Hồ Chí Minh</option>
-            <option value="tokyo">Tokyo</option>
-            <option value="london">London</option>
-            <option value="newyork">New York</option>
-          </select>
-        </div>
-        <div class="vs-circle">VS</div>
-        <div class="form-group flex-1">
-          <label><i data-feather="map-pin"></i> Thành phố 2</label>
-          <select id="compareCity2" class="styled-select">
-            <option value="hanoi">Hà Nội</option>
-            <option value="danang">Đà Nẵng</option>
-            <option value="hcm">TP. Hồ Chí Minh</option>
-            <option value="tokyo" selected>Tokyo</option>
-            <option value="london">London</option>
-            <option value="newyork">New York</option>
-          </select>
-        </div>
-      </div>
+    <!-- MAIN VIEW 2: COMPARE VIEW -->
+    <main id="compareView" class="view-container hidden">
+      <section class="compare-header-box">
+        <h3>So sánh thời tiết 2 thành phố</h3>
+        <p>Xem sự khác biệt về nhiệt độ, độ ẩm và nhận định trang phục/hoạt động phù hợp.</p>
+      </section>
 
-      <button id="compareBtn" class="btn btn-primary btn-block">
-        <i data-feather="activity"></i> So sánh ngay
+      <section class="compare-controls">
+        <div class="compare-select-wrap">
+          <label>Thành phố thứ nhất</label>
+          <div class="city-selector-box">
+            <select id="compareCity1" class="city-select">
+              <option value="hanoi" selected>Hà Nội</option>
+              <option value="danang">Đà Nẵng</option>
+              <option value="hcm">TP. Hồ Chí Minh</option>
+              <option value="tokyo">Tokyo</option>
+              <option value="seoul">Seoul</option>
+              <option value="london">London</option>
+              <option value="paris">Paris</option>
+              <option value="newyork">New York</option>
+              <option value="sydney">Sydney</option>
+            </select>
+            <i data-feather="chevron-down" class="dropdown-chevron"></i>
+          </div>
+        </div>
+
+        <div class="compare-vs-badge">VS</div>
+
+        <div class="compare-select-wrap">
+          <label>Thành phố thứ hai</label>
+          <div class="city-selector-box">
+            <select id="compareCity2" class="city-select">
+              <option value="hanoi">Hà Nội</option>
+              <option value="danang">Đà Nẵng</option>
+              <option value="hcm">TP. Hồ Chí Minh</option>
+              <option value="tokyo" selected>Tokyo</option>
+              <option value="seoul">Seoul</option>
+              <option value="london">London</option>
+              <option value="paris">Paris</option>
+              <option value="newyork">New York</option>
+              <option value="sydney">Sydney</option>
+            </select>
+            <i data-feather="chevron-down" class="dropdown-chevron"></i>
+          </div>
+        </div>
+      </section>
+
+      <button id="compareBtn" class="primary-btn compare-submit-btn">
+        So sánh thời tiết
       </button>
 
-      <!-- Compare Loading & Error -->
-      <div id="compareLoading" class="state-container hidden">
-        <div class="spinner"></div>
-        <p>Đang so sánh song song 2 thành phố...</p>
+      <div id="compareLoading" class="state-view hidden">
+        <div class="loading-spinner"></div>
+        <p>Đang phân tích thời tiết...</p>
       </div>
 
-      <!-- Compare Result Box -->
-      <div id="compareResult" class="compare-result hidden">
-        <div class="comparison-summary-card">
-          <i data-feather="info"></i>
-          <span id="compareSummaryText">Đang phân tích...</span>
+      <!-- Compare Results -->
+      <div id="compareResult" class="compare-results-box hidden">
+        <div class="compare-summary-bar">
+          <i data-feather="compass"></i>
+          <p id="compareSummaryText">--</p>
         </div>
 
-        <div class="compare-cards-grid">
-          <!-- City 1 Card -->
-          <div class="compare-card" id="cardCity1">
-            <h3 id="compName1">--</h3>
-            <div class="comp-temp" id="compTemp1">--°C</div>
-            <div class="comp-desc" id="compDesc1">--</div>
-            <div class="comp-stat">Độ ẩm: <strong id="compHumidity1">--%</strong></div>
-            <div class="comp-stat">Gió: <strong id="compWind1">-- km/h</strong></div>
+        <div class="compare-cards-container">
+          <div class="compare-city-card" id="cardCity1">
+            <span class="city-tag">Thành phố 1</span>
+            <h4 id="compName1">--</h4>
+            <div class="compare-temp-big" id="compTemp1">--°</div>
+            <div class="compare-status" id="compDesc1">--</div>
+            <div class="compare-meta">
+              <div><span>Độ ẩm:</span> <strong id="compHumidity1">--%</strong></div>
+              <div><span>Gió:</span> <strong id="compWind1">-- km/h</strong></div>
+            </div>
           </div>
 
-          <!-- City 2 Card -->
-          <div class="compare-card" id="cardCity2">
-            <h3 id="compName2">--</h3>
-            <div class="comp-temp" id="compTemp2">--°C</div>
-            <div class="comp-desc" id="compDesc2">--</div>
-            <div class="comp-stat">Độ ẩm: <strong id="compHumidity2">--%</strong></div>
-            <div class="comp-stat">Gió: <strong id="compWind2">-- km/h</strong></div>
+          <div class="compare-city-card" id="cardCity2">
+            <span class="city-tag">Thành phố 2</span>
+            <h4 id="compName2">--</h4>
+            <div class="compare-temp-big" id="compTemp2">--°</div>
+            <div class="compare-status" id="compDesc2">--</div>
+            <div class="compare-meta">
+              <div><span>Độ ẩm:</span> <strong id="compHumidity2">--%</strong></div>
+              <div><span>Gió:</span> <strong id="compWind2">-- km/h</strong></div>
+            </div>
           </div>
         </div>
 
-        <!-- Delta Stats -->
-        <div class="delta-box">
-          <div class="delta-item">
+        <div class="diff-summary-row">
+          <div class="diff-card">
             <span>Chênh lệch nhiệt độ</span>
             <strong id="deltaTemp">--</strong>
           </div>
-          <div class="delta-item">
+          <div class="diff-card">
             <span>Chênh lệch độ ẩm</span>
             <strong id="deltaHumidity">--</strong>
           </div>
-          <div class="delta-item">
-            <span>Chênh lệch tốc độ gió</span>
+          <div class="diff-card">
+            <span>Chênh lệch sức gió</span>
             <strong id="deltaWind">--</strong>
           </div>
         </div>
       </div>
-    </div>
+    </main>
 
     <!-- Footer -->
-    <footer class="card-footer">
-      <span>Backend: Node.js (Express) + SQLite | API Nguồn: <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a></span>
+    <footer class="app-footer">
+      <p>Dữ liệu khí tượng cập nhật thời gian thực từ mạng lưới quan trắc quốc tế.</p>
     </footer>
-  </main>
+  </div>
 
   <script src="app.js"></script>
 </body>
