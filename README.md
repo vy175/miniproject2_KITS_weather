@@ -123,11 +123,4 @@ npm test              # Chạy Integration / API Tests
 ```
 
 ---
-
-## 🎥 6. Kịch bản Quay Video Demo (1.5 - 2 phút)
-
-* **0:00 - 0:25**: Mở `http://localhost:3000`. Giới thiệu giao diện clean, hiện đại và cấu trúc phân tầng (Layered Architecture).
-* **0:25 - 0:45**: Gõ tìm kiếm một thành phố bất kỳ (VD: *"Đà Lạt"* hoặc *"Nha Trang"*), chỉ vào dropdown Autocomplete, nạp thời tiết và chỉ vào thanh **Cảnh báo thông minh**.
-* **0:45 - 1:05**: Chuyển sang Tab **"So sánh"**. Tìm kiếm 2 thành phố bất kỳ (VD: *Đà Lạt vs Nha Trang*), bấm **"So sánh"** để trình diễn đối chiếu độ lệch nhiệt độ/độ ẩm/gió.
-* **1:05 - 1:20**: Bấm nút đổi ngôn ngữ **`VI / EN`**, đổi đơn vị **`°C / °F`**. Bấm nút `(x)` trên một thẻ lịch sử để biểu diễn xóa dữ liệu khỏi SQLite.
-* **1:20 - 1:45**: Mở terminal chạy `npm run test:unit` (11/11 Unit Tests PASS) và `npm test` (9/9 API Tests PASS) để minh chứng chất lượng mã nguồn.
+1/11 Unit Tests PASS) và `npm test` (9/9 API Tests PASS) để minh chứng chất lượng mã nguồn.
