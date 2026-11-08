@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dự Báo Thời Tiết</title>
+  <title>Weather App</title>
   <link rel="stylesheet" href="style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,25 +16,35 @@
     <header class="app-header">
       <div class="brand">
         <i data-feather="cloud-sun" class="brand-icon"></i>
-        <span class="brand-name">Thời Tiết</span>
+        <span class="brand-name" data-i18n="app_title">Thời Tiết</span>
       </div>
 
       <nav class="nav-segmented">
-        <button id="tabSingle" class="segment-btn active">Hiện tại</button>
-        <button id="tabCompare" class="segment-btn">So sánh</button>
+        <button id="tabSingle" class="segment-btn active" data-i18n="tab_current">Hiện tại</button>
+        <button id="tabCompare" class="segment-btn" data-i18n="tab_compare">So sánh</button>
       </nav>
 
-      <button id="unitToggleBtn" class="unit-toggle" title="Chuyển đổi °C / °F">
-        <span class="unit-c active">°C</span>
-        <span class="unit-sep">/</span>
-        <span class="unit-f">°F</span>
-      </button>
+      <div class="header-controls">
+        <!-- Language Switcher Pill -->
+        <button id="langToggleBtn" class="pill-toggle" title="Switch Language">
+          <span class="lang-vi active">VI</span>
+          <span class="sep">/</span>
+          <span class="lang-en">EN</span>
+        </button>
+
+        <!-- Temperature Unit Pill -->
+        <button id="unitToggleBtn" class="pill-toggle" title="Switch Unit">
+          <span class="unit-c active">°C</span>
+          <span class="sep">/</span>
+          <span class="unit-f">°F</span>
+        </button>
+      </div>
     </header>
 
     <!-- Offline Banner -->
     <div id="offlineBanner" class="banner-offline hidden">
       <i data-feather="wifi-off"></i>
-      <span>Thiết bị đang ngoại tuyến. Vui lòng kiểm tra lại kết nối.</span>
+      <span data-i18n="offline_msg">Thiết bị đang ngoại tuyến. Vui lòng kiểm tra lại kết nối.</span>
     </div>
 
     <!-- VIEW 1: SINGLE WEATHER -->
@@ -44,36 +54,34 @@
         <div class="select-wrapper">
           <i data-feather="map-pin" class="field-icon"></i>
           <select id="citySelect" class="city-dropdown">
-            <option value="hanoi" selected>Hà Nội, Việt Nam</option>
-            <option value="danang">Đà Nẵng, Việt Nam</option>
-            <option value="hcm">TP. Hồ Chí Minh, Việt Nam</option>
-            <option value="tokyo">Tokyo, Nhật Bản</option>
-            <option value="seoul">Seoul, Hàn Quốc</option>
-            <option value="london">London, Vương quốc Anh</option>
-            <option value="paris">Paris, Pháp</option>
-            <option value="newyork">New York, Mỹ</option>
-            <option value="sydney">Sydney, Úc</option>
+            <option value="hanoi" selected>Hà Nội (Hanoi)</option>
+            <option value="danang">Đà Nẵng (Da Nang)</option>
+            <option value="hcm">TP. Hồ Chí Minh (Ho Chi Minh City)</option>
+            <option value="tokyo">Tokyo</option>
+            <option value="seoul">Seoul</option>
+            <option value="london">London</option>
+            <option value="paris">Paris</option>
+            <option value="newyork">New York</option>
+            <option value="sydney">Sydney</option>
           </select>
           <i data-feather="chevron-down" class="dropdown-icon"></i>
         </div>
 
-        <div class="chips-container" id="historyList">
-          <!-- Quick search chips rendered here -->
-        </div>
+        <div class="chips-container" id="historyList"></div>
       </section>
 
       <!-- Loading State -->
       <div id="loadingState" class="state-box hidden">
         <div class="spinner"></div>
-        <p>Đang cập nhật...</p>
+        <p data-i18n="loading_text">Đang cập nhật...</p>
       </div>
 
       <!-- Error State -->
       <div id="errorState" class="state-box error-box hidden">
         <i data-feather="alert-circle" class="error-symbol"></i>
-        <h3>Không thể tải thời tiết</h3>
-        <p id="errorMessage">Vui lòng kiểm tra kết nối mạng và thử lại.</p>
-        <button id="retryBtn" class="btn-primary">Thử lại</button>
+        <h3 data-i18n="error_title">Không thể tải thời tiết</h3>
+        <p id="errorMessage" data-i18n="error_msg">Vui lòng kiểm tra kết nối mạng và thử lại.</p>
+        <button id="retryBtn" class="btn-primary" data-i18n="btn_retry">Thử lại</button>
       </div>
 
       <!-- Weather Content -->
@@ -82,8 +90,8 @@
         <section class="hero-card">
           <div class="hero-top">
             <div>
-              <h2 class="city-name" id="cityName">Hà Nội</h2>
-              <div class="country-name" id="countryName">Việt Nam</div>
+              <h2 class="city-name" id="cityName">--</h2>
+              <div class="country-name" id="countryName">--</div>
             </div>
             <span class="time-stamp" id="updateTime">--</span>
           </div>
@@ -112,38 +120,38 @@
         <section class="metrics-grid">
           <div class="metric-card">
             <div class="metric-meta">
-              <span>Độ ẩm</span>
+              <span data-i18n="metric_humidity">Độ ẩm</span>
               <i data-feather="droplet"></i>
             </div>
             <div class="metric-value" id="humidity">--%</div>
-            <div class="metric-note">Độ ẩm tương đối</div>
+            <div class="metric-note" data-i18n="metric_humidity_sub">Độ ẩm tương đối</div>
           </div>
 
           <div class="metric-card">
             <div class="metric-meta">
-              <span>Tốc độ gió</span>
+              <span data-i18n="metric_wind">Tốc độ gió</span>
               <i data-feather="wind"></i>
             </div>
             <div class="metric-value" id="windSpeed">-- km/h</div>
-            <div class="metric-note">Sức gió hiện tại</div>
+            <div class="metric-note" data-i18n="metric_wind_sub">Sức gió hiện tại</div>
           </div>
 
           <div class="metric-card">
             <div class="metric-meta">
-              <span>Độ cao</span>
+              <span data-i18n="metric_elevation">Độ cao</span>
               <i data-feather="activity"></i>
             </div>
             <div class="metric-value" id="elevation">-- m</div>
-            <div class="metric-note">So với mực nước biển</div>
+            <div class="metric-note" data-i18n="metric_elevation_sub">So với mực nước biển</div>
           </div>
 
           <div class="metric-card">
             <div class="metric-meta">
-              <span>Tọa độ</span>
+              <span data-i18n="metric_coords">Tọa độ</span>
               <i data-feather="compass"></i>
             </div>
             <div class="metric-value" id="coordinates">--</div>
-            <div class="metric-note">Vĩ độ, Kinh độ</div>
+            <div class="metric-note" data-i18n="metric_coords_sub">Vĩ độ, Kinh độ</div>
           </div>
         </section>
       </div>
@@ -152,14 +160,14 @@
     <!-- VIEW 2: COMPARE VIEW -->
     <main id="compareView" class="view-panel hidden">
       <section class="compare-header">
-        <h3>So sánh thời tiết 2 thành phố</h3>
-        <p>Đối chiếu sự khác biệt về nhiệt độ, độ ẩm và các chỉ số thời tiết.</p>
+        <h3 data-i18n="compare_title">So sánh thời tiết 2 thành phố</h3>
+        <p data-i18n="compare_subtitle">Đối chiếu sự khác biệt về nhiệt độ, độ ẩm và các chỉ số thời tiết.</p>
       </section>
 
       <section class="compare-form">
         <div class="compare-row">
           <div class="compare-field">
-            <label>Thành phố 1</label>
+            <label data-i18n="city_1_label">Thành phố 1</label>
             <div class="select-wrapper">
               <select id="compareCity1" class="city-dropdown">
                 <option value="hanoi" selected>Hà Nội</option>
@@ -179,7 +187,7 @@
           <div class="vs-divider">VS</div>
 
           <div class="compare-field">
-            <label>Thành phố 2</label>
+            <label data-i18n="city_2_label">Thành phố 2</label>
             <div class="select-wrapper">
               <select id="compareCity2" class="city-dropdown">
                 <option value="hanoi">Hà Nội</option>
@@ -197,13 +205,13 @@
           </div>
         </div>
 
-        <button id="compareBtn" class="btn-primary btn-full">So sánh</button>
+        <button id="compareBtn" class="btn-primary btn-full" data-i18n="btn_compare">So sánh</button>
       </section>
 
       <!-- Compare Loading -->
       <div id="compareLoading" class="state-box hidden">
         <div class="spinner"></div>
-        <p>Đang tải dữ liệu so sánh...</p>
+        <p data-i18n="compare_loading">Đang tải dữ liệu so sánh...</p>
       </div>
 
       <!-- Compare Result -->
@@ -215,39 +223,39 @@
 
         <div class="compare-columns">
           <div class="comp-city-card" id="cardCity1">
-            <span class="city-badge">Thành phố 1</span>
+            <span class="city-badge" data-i18n="city_1_badge">Thành phố 1</span>
             <h4 id="compName1">--</h4>
             <div class="comp-temp" id="compTemp1">--°</div>
             <div class="comp-desc" id="compDesc1">--</div>
             <div class="comp-details">
-              <div><span>Độ ẩm:</span> <strong id="compHumidity1">--%</strong></div>
-              <div><span>Gió:</span> <strong id="compWind1">-- km/h</strong></div>
+              <div><span data-i18n="metric_humidity">Độ ẩm</span>: <strong id="compHumidity1">--%</strong></div>
+              <div><span data-i18n="metric_wind">Gió</span>: <strong id="compWind1">-- km/h</strong></div>
             </div>
           </div>
 
           <div class="comp-city-card" id="cardCity2">
-            <span class="city-badge">Thành phố 2</span>
+            <span class="city-badge" data-i18n="city_2_badge">Thành phố 2</span>
             <h4 id="compName2">--</h4>
             <div class="comp-temp" id="compTemp2">--°</div>
             <div class="comp-desc" id="compDesc2">--</div>
             <div class="comp-details">
-              <div><span>Độ ẩm:</span> <strong id="compHumidity2">--%</strong></div>
-              <div><span>Gió:</span> <strong id="compWind2">-- km/h</strong></div>
+              <div><span data-i18n="metric_humidity">Độ ẩm</span>: <strong id="compHumidity2">--%</strong></div>
+              <div><span data-i18n="metric_wind">Gió</span>: <strong id="compWind2">-- km/h</strong></div>
             </div>
           </div>
         </div>
 
         <div class="delta-summary">
           <div class="delta-box">
-            <span>Chênh lệch nhiệt độ</span>
+            <span data-i18n="diff_temp">Chênh lệch nhiệt độ</span>
             <strong id="deltaTemp">--</strong>
           </div>
           <div class="delta-box">
-            <span>Chênh lệch độ ẩm</span>
+            <span data-i18n="diff_humidity">Chênh lệch độ ẩm</span>
             <strong id="deltaHumidity">--</strong>
           </div>
           <div class="delta-box">
-            <span>Chênh lệch sức gió</span>
+            <span data-i18n="diff_wind">Chênh lệch sức gió</span>
             <strong id="deltaWind">--</strong>
           </div>
         </div>
@@ -256,7 +264,7 @@
 
     <!-- Footer -->
     <footer class="app-footer">
-      <span>Dữ liệu khí tượng Open-Meteo</span>
+      <span data-i18n="footer_text">Dữ liệu khí tượng Open-Meteo</span>
     </footer>
   </div>
 

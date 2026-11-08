@@ -46,7 +46,7 @@ body {
   max-width: 520px;
   display: flex;
   flex-direction: column;
-  gap: 14px; /* Giảm gap lớn giữa các cụm */
+  gap: 14px;
 }
 
 /* Header */
@@ -55,6 +55,7 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 0 4px;
+  gap: 8px;
 }
 
 .brand {
@@ -108,30 +109,37 @@ body {
   font-weight: 600;
 }
 
-/* Unit Toggle */
-.unit-toggle {
+/* Header Controls (Language + Unit) */
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.pill-toggle {
   background: var(--bg-card);
   border: 1px solid var(--border-light);
   color: var(--text-secondary);
-  padding: 5px 10px;
+  padding: 5px 9px;
   border-radius: var(--radius-full);
   cursor: pointer;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 600;
   display: flex;
   align-items: center;
   gap: 3px;
+  transition: background 0.15s ease;
 }
 
-.unit-toggle:hover {
+.pill-toggle:hover {
   background: var(--bg-hover);
 }
 
-.unit-toggle .active {
+.pill-toggle .active {
   color: var(--accent-sky);
 }
 
-.unit-sep {
+.sep {
   color: var(--text-muted);
   font-size: 0.7rem;
 }
@@ -254,7 +262,7 @@ body {
   gap: 12px;
 }
 
-/* Hero Card (Căn chỉnh gọn gàng, giảm padding thừa) */
+/* Hero Card */
 .hero-card {
   background: var(--bg-card);
   border: 1px solid var(--border-light);
@@ -373,7 +381,7 @@ body {
 .advice-card.danger svg { color: var(--accent-rose); }
 .advice-card.success svg { color: var(--accent-emerald); }
 
-/* Metrics Grid (Khoảng cách hợp lý) */
+/* Metrics Grid */
 .metrics-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
