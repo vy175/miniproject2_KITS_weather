@@ -3,3 +3,4 @@ weather.db-shm
 weather.db-wal
 .DS_Store
 *.log
+
