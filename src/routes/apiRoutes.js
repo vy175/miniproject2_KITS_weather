@@ -1,0 +1,12 @@
+const express = require('express');
+const router = express.Router();
+const weatherController = require('../controllers/weatherController');
+
+// REST API Endpoints
+router.get('/health', (req, res) => weatherController.getHealth(req, res));
+router.get('/cities', (req, res) => weatherController.getCities(req, res));
+router.get('/history', (req, res) => weatherController.getHistory(req, res));
+router.get('/weather', (req, res) => weatherController.getWeather(req, res));
+router.get('/weather/compare', (req, res) => weatherController.compareWeather(req, res));
+
+module.exports = router;
