@@ -2,16 +2,17 @@ const db = require('../database/connection');
 const { CACHE_TTL_MS } = require('../config/cities');
 
 /**
- * Service: Persistent Cache via SQLite
+ * Service: Persistent Cache via SQLite (Supports Stale-While-Revalidate)
  */
 class CacheService {
-  get(cityKey) {
+  get(cityKey, ignoreExpiry = false) {
     const now = Date.now();
-    const row = db.prepare(`
-      SELECT data_json FROM weather_cache 
-      WHERE city_key = ? AND expires_at > ?
-    `).get(cityKey, now);
+    let query = `SELECT data_json FROM weather_cache WHERE city_key = ?`;
+    if (!ignoreExpiry) {
+      query += ` AND expires_at > ${now}`;
+    }
 
+    const row = db.prepare(query).get(cityKey);
     return row ? JSON.parse(row.data_json) : null;
   }
 
@@ -33,7 +34,6 @@ class CacheService {
   }
 
   addHistory(cityKey, cityName, temperature, weatherDesc) {
-    // Xóa record cũ nếu trùng cityKey để không bị lặp lại nhiều lần
     db.prepare(`DELETE FROM search_history WHERE city_key = ?`).run(cityKey);
 
     const stmt = db.prepare(`
@@ -42,7 +42,7 @@ class CacheService {
     `);
     stmt.run(cityKey, cityName, temperature, weatherDesc);
 
-    // Tự động giữ tối đa 20 records mới nhất trong DB
+    // Keep max 20 latest
     db.prepare(`
       DELETE FROM search_history 
       WHERE id NOT IN (

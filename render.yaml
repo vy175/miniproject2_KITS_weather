@@ -9,3 +9,4 @@ services:
     startCommand: node server.js
     healthCheckPath: /api/health
     autoDeploy: true
+
