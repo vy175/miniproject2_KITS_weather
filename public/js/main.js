@@ -12,23 +12,33 @@ class WeatherApp {
     this.isCelsius = true;
     this.currentData = null;
     this.searchTimeout = null;
+    this.compareSearchTimeout1 = null;
+    this.compareSearchTimeout2 = null;
 
+    // Single Search Elements
     this.citySearchInput = document.getElementById("citySearchInput");
     this.clearSearchBtn = document.getElementById("clearSearchBtn");
     this.searchResultsList = document.getElementById("searchResultsList");
 
+    // Compare Search Elements
+    this.compareSearch1 = document.getElementById("compareSearch1");
+    this.compareResults1 = document.getElementById("compareResults1");
+    this.compareSearch2 = document.getElementById("compareSearch2");
+    this.compareResults2 = document.getElementById("compareResults2");
+    this.compareBtn = document.getElementById("compareBtn");
+
+    // City 1 & 2 selected payload
+    this.selectedCity1 = { cityKey: "hanoi", name: "Hà Nội", country: "Việt Nam" };
+    this.selectedCity2 = { cityKey: "tokyo", name: "Tokyo", country: "Nhật Bản" };
+
     this.unitToggleBtn = document.getElementById("unitToggleBtn");
     this.langToggleBtn = document.getElementById("langToggleBtn");
     this.retryBtn = document.getElementById("retryBtn");
-    this.compareBtn = document.getElementById("compareBtn");
 
     this.tabSingle = document.getElementById("tabSingle");
     this.tabCompare = document.getElementById("tabCompare");
     this.singleView = document.getElementById("singleView");
     this.compareView = document.getElementById("compareView");
-
-    this.compareCity1 = document.getElementById("compareCity1");
-    this.compareCity2 = document.getElementById("compareCity2");
     this.offlineBanner = document.getElementById("offlineBanner");
 
     this.init();
@@ -44,7 +54,6 @@ class WeatherApp {
       this.offlineBanner.classList.remove("hidden");
     }
 
-    // Restore last selected city or default to Hanoi
     const savedCity = localStorage.getItem("lastCityInfo");
     if (savedCity) {
       try {
@@ -59,7 +68,7 @@ class WeatherApp {
   }
 
   bindEvents() {
-    // City Search Input (Autocomplete Debounce)
+    // 1. Single City Search Input (Autocomplete)
     this.citySearchInput.addEventListener("input", (e) => {
       const val = e.target.value.trim();
       this.clearSearchBtn.classList.toggle("hidden", val.length === 0);
@@ -72,7 +81,13 @@ class WeatherApp {
 
       this.searchTimeout = setTimeout(async () => {
         const results = await searchCitiesApi(val);
-        this.renderSearchResults(results);
+        this.renderSearchResults(results, this.searchResultsList, (cityObj) => {
+          this.citySearchInput.value = `${cityObj.name}, ${cityObj.country}`;
+          this.searchResultsList.classList.add("hidden");
+          this.clearSearchBtn.classList.remove("hidden");
+          localStorage.setItem("lastCityInfo", JSON.stringify(cityObj));
+          this.loadWeather(cityObj);
+        });
       }, 300);
     });
 
@@ -83,13 +98,58 @@ class WeatherApp {
       this.citySearchInput.focus();
     });
 
-    // Close search dropdown when clicking outside
+    // 2. Compare City 1 Search Input (Autocomplete)
+    this.compareSearch1.addEventListener("input", (e) => {
+      const val = e.target.value.trim();
+      clearTimeout(this.compareSearchTimeout1);
+      if (val.length < 2) {
+        this.compareResults1.classList.add("hidden");
+        return;
+      }
+      this.compareSearchTimeout1 = setTimeout(async () => {
+        const results = await searchCitiesApi(val);
+        this.renderSearchResults(results, this.compareResults1, (cityObj) => {
+          this.compareSearch1.value = `${cityObj.name}, ${cityObj.country}`;
+          this.compareSearch1.setAttribute("data-key", cityObj.cityKey || `${Number(cityObj.lat).toFixed(2)}_${Number(cityObj.lon).toFixed(2)}`);
+          this.selectedCity1 = cityObj;
+          this.compareResults1.classList.add("hidden");
+        });
+      }, 300);
+    });
+
+    // 3. Compare City 2 Search Input (Autocomplete)
+    this.compareSearch2.addEventListener("input", (e) => {
+      const val = e.target.value.trim();
+      clearTimeout(this.compareSearchTimeout2);
+      if (val.length < 2) {
+        this.compareResults2.classList.add("hidden");
+        return;
+      }
+      this.compareSearchTimeout2 = setTimeout(async () => {
+        const results = await searchCitiesApi(val);
+        this.renderSearchResults(results, this.compareResults2, (cityObj) => {
+          this.compareSearch2.value = `${cityObj.name}, ${cityObj.country}`;
+          this.compareSearch2.setAttribute("data-key", cityObj.cityKey || `${Number(cityObj.lat).toFixed(2)}_${Number(cityObj.lon).toFixed(2)}`);
+          this.selectedCity2 = cityObj;
+          this.compareResults2.classList.add("hidden");
+        });
+      }, 300);
+    });
+
+    // Close any search dropdown when clicking outside
     document.addEventListener("click", (e) => {
       if (!this.citySearchInput.contains(e.target) && !this.searchResultsList.contains(e.target)) {
         this.searchResultsList.classList.add("hidden");
       }
+      if (!this.compareSearch1.contains(e.target) && !this.compareResults1.contains(e.target)) {
+        this.compareResults1.classList.add("hidden");
+      }
+      if (!this.compareSearch2.contains(e.target) && !this.compareResults2.contains(e.target)) {
+        this.compareResults2.classList.add("hidden");
+      }
     });
 
+    // Unit toggle
     this.unitToggleBtn.addEventListener("click", () => {
       this.isCelsius = !this.isCelsius;
       this.unitToggleBtn.querySelector(".unit-c").classList.toggle("active", this.isCelsius);
@@ -99,6 +159,7 @@ class WeatherApp {
       }
     });
 
+    // Language toggle
     this.langToggleBtn.addEventListener("click", () => {
       const next = this.currentLang === "vi" ? "en" : "vi";
       this.applyLanguage(next);
@@ -114,6 +175,7 @@ class WeatherApp {
 
     this.compareBtn.addEventListener("click", () => this.handleCompare());
 
+    // Tabs
     this.tabSingle.addEventListener("click", () => {
       this.tabSingle.classList.add("active");
       this.tabCompare.classList.remove("active");
@@ -142,14 +204,14 @@ class WeatherApp {
     });
   }
 
-  renderSearchResults(results) {
+  renderSearchResults(results, container, onSelect) {
     if (!results || results.length === 0) {
-      this.searchResultsList.innerHTML = `<div class="search-empty">${this.currentLang === 'vi' ? 'Không tìm thấy địa điểm phù hợp' : 'No locations found'}</div>`;
-      this.searchResultsList.classList.remove("hidden");
+      container.innerHTML = `<div class="search-empty">${this.currentLang === 'vi' ? 'Không tìm thấy địa điểm phù hợp' : 'No locations found'}</div>`;
+      container.classList.remove("hidden");
       return;
     }
 
-    this.searchResultsList.innerHTML = results.map(city => `
+    container.innerHTML = results.map(city => `
       <div class="search-item" data-lat="${city.lat}" data-lon="${city.lon}" data-name="${city.name}" data-country="${city.country}">
         <div class="search-item-info">
           <span class="search-item-name">${city.name}</span>
@@ -159,7 +221,7 @@ class WeatherApp {
       </div>
     `).join("");
 
-    this.searchResultsList.querySelectorAll(".search-item").forEach(item => {
+    container.querySelectorAll(".search-item").forEach(item => {
       item.addEventListener("click", () => {
         const cityObj = {
           lat: item.getAttribute("data-lat"),
@@ -167,16 +229,11 @@ class WeatherApp {
           name: item.getAttribute("data-name"),
           country: item.getAttribute("data-country")
         };
-        this.citySearchInput.value = `${cityObj.name}, ${cityObj.country}`;
-        this.searchResultsList.classList.add("hidden");
-        this.clearSearchBtn.classList.remove("hidden");
-
-        localStorage.setItem("lastCityInfo", JSON.stringify(cityObj));
-        this.loadWeather(cityObj);
+        onSelect(cityObj);
       });
     });
 
-    this.searchResultsList.classList.remove("hidden");
+    container.classList.remove("hidden");
     if (window.feather) feather.replace();
   }
 
@@ -197,6 +254,9 @@ class WeatherApp {
       ? "Tìm thành phố (Hà Nội, Đà Lạt, Nha Trang, Paris...)" 
       : "Search city (Tokyo, New York, London, Paris...)";
 
+    this.compareSearch1.placeholder = lang === 'vi' ? "Tìm thành phố 1..." : "Search city 1...";
+    this.compareSearch2.placeholder = lang === 'vi' ? "Tìm thành phố 2..." : "Search city 2...";
+
     if (this.currentData) {
       this.ui.renderWeather(this.currentData, lang, this.isCelsius);
     }
@@ -215,7 +275,6 @@ class WeatherApp {
       this.ui.renderWeather(data, this.currentLang, this.isCelsius);
       this.ui.setUIState("success");
 
-      // Update Search field display
       if (data.city) {
         this.citySearchInput.value = `${data.city.name}${data.city.country ? ', ' + data.city.country : ''}`;
         this.clearSearchBtn.classList.remove("hidden");
@@ -231,10 +290,15 @@ class WeatherApp {
   }
 
   async handleCompare() {
-    const c1 = this.compareCity1.value;
-    const c2 = this.compareCity2.value;
+    const key1 = this.compareSearch1.getAttribute("data-key") || this.compareSearch1.value.trim();
+    const key2 = this.compareSearch2.getAttribute("data-key") || this.compareSearch2.value.trim();
 
-    if (c1 === c2) {
+    if (!key1 || !key2) {
+      alert(this.currentLang === 'vi' ? "Vui lòng chọn đủ 2 thành phố để so sánh." : "Please select both cities to compare.");
+      return;
+    }
+
+    if (key1 === key2) {
       alert(this.currentLang === 'vi' ? "Vui lòng chọn 2 thành phố khác nhau để so sánh." : "Please choose two different cities.");
       return;
     }
@@ -243,7 +307,7 @@ class WeatherApp {
     this.ui.compareResult.classList.add("hidden");
 
     try {
-      const result = await compareCitiesData(c1, c2);
+      const result = await compareCitiesData(key1, key2);
       this.ui.renderCompare(result, this.currentLang);
     } catch (err) {
       this.ui.compareLoading.classList.add("hidden");

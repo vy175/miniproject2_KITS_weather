@@ -157,50 +157,50 @@
       </div>
     </main>
 
-    <!-- VIEW 2: COMPARE VIEW -->
+    <!-- VIEW 2: COMPARE VIEW (DYNAMIC SEARCH FOR BOTH CITIES) -->
     <main id="compareView" class="view-panel hidden">
       <section class="compare-header">
         <h3 data-i18n="compare_title">So sánh thời tiết 2 thành phố</h3>
-        <p data-i18n="compare_subtitle">Đối chiếu sự khác biệt về nhiệt độ, độ ẩm và các chỉ số thời tiết.</p>
+        <p data-i18n="compare_subtitle">Tìm và đối chiếu sự khác biệt thời tiết giữa 2 thành phố bất kỳ.</p>
       </section>
 
       <section class="compare-form">
         <div class="compare-row">
+          <!-- City 1 Search Input -->
           <div class="compare-field">
             <label data-i18n="city_1_label">Thành phố 1</label>
-            <div class="select-wrapper">
-              <select id="compareCity1" class="city-dropdown">
-                <option value="hanoi" selected>Hà Nội</option>
-                <option value="danang">Đà Nẵng</option>
-                <option value="hcm">TP. Hồ Chí Minh</option>
-                <option value="tokyo">Tokyo</option>
-                <option value="seoul">Seoul</option>
-                <option value="london">London</option>
-                <option value="paris">Paris</option>
-                <option value="newyork">New York</option>
-                <option value="sydney">Sydney</option>
-              </select>
-              <i data-feather="chevron-down" class="dropdown-icon"></i>
+            <div class="search-input-box">
+              <i data-feather="search" class="field-icon"></i>
+              <input 
+                type="text" 
+                id="compareSearch1" 
+                class="city-search-field" 
+                placeholder="Tìm thành phố 1..."
+                value="Hà Nội, Việt Nam"
+                data-key="hanoi"
+                autocomplete="off"
+              />
+              <div id="compareResults1" class="search-dropdown hidden"></div>
             </div>
           </div>
 
           <div class="vs-divider">VS</div>
 
+          <!-- City 2 Search Input -->
           <div class="compare-field">
             <label data-i18n="city_2_label">Thành phố 2</label>
-            <div class="select-wrapper">
-              <select id="compareCity2" class="city-dropdown">
-                <option value="hanoi">Hà Nội</option>
-                <option value="danang">Đà Nẵng</option>
-                <option value="hcm">TP. Hồ Chí Minh</option>
-                <option value="tokyo" selected>Tokyo</option>
-                <option value="seoul">Seoul</option>
-                <option value="london">London</option>
-                <option value="paris">Paris</option>
-                <option value="newyork">New York</option>
-                <option value="sydney">Sydney</option>
-              </select>
-              <i data-feather="chevron-down" class="dropdown-icon"></i>
+            <div class="search-input-box">
+              <i data-feather="search" class="field-icon"></i>
+              <input 
+                type="text" 
+                id="compareSearch2" 
+                class="city-search-field" 
+                placeholder="Tìm thành phố 2..."
+                value="Tokyo, Nhật Bản"
+                data-key="tokyo"
+                autocomplete="off"
+              />
+              <div id="compareResults2" class="search-dropdown hidden"></div>
             </div>
           </div>
         </div>
