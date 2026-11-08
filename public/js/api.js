@@ -38,3 +38,11 @@ export async function getSearchHistory() {
   const result = await res.json();
   return result.success ? result.data : [];
 }
+
+export async function deleteHistoryItemApi(cityKey) {
+  const res = await fetch(`/api/history/${encodeURIComponent(cityKey)}`, {
+    method: 'DELETE'
+  });
+  const result = await res.json();
+  return result.success;
+}

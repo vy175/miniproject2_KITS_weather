@@ -293,67 +293,68 @@ body {
   text-align: center;
 }
 
-/* Select wrapper for compare view */
-.select-wrapper {
-  position: relative;
-  width: 100%;
-}
-
-.dropdown-icon {
-  position: absolute;
-  right: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 16px;
-  height: 16px;
-  color: var(--text-secondary);
-  pointer-events: none;
-}
-
-.city-dropdown {
-  width: 100%;
-  appearance: none;
-  -webkit-appearance: none;
-  background: var(--bg-card);
-  border: 1px solid var(--border-light);
-  color: var(--text-primary);
-  padding: 10px 36px 10px 14px;
-  border-radius: var(--radius-lg);
-  font-size: 0.9rem;
-  font-weight: 500;
-  cursor: pointer;
-  outline: none;
-}
-
-/* Chips Container */
+/* Chips Container with Delete (X) Button */
 .chips-container {
   display: flex;
   align-items: center;
   gap: 6px;
   overflow-x: auto;
   scrollbar-width: none;
+  padding-bottom: 2px;
 }
 
 .chips-container::-webkit-scrollbar {
   display: none;
 }
 
-.quick-chip {
+.quick-chip-wrap {
+  display: inline-flex;
+  align-items: center;
   background: var(--bg-subtle);
   border: 1px solid var(--border-light);
+  border-radius: var(--radius-full);
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.quick-chip-wrap:hover {
+  background: var(--bg-hover);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.quick-chip {
+  background: transparent;
+  border: none;
   color: var(--text-secondary);
   font-size: 0.78rem;
   font-weight: 500;
-  padding: 4px 10px;
-  border-radius: var(--radius-full);
+  padding: 4px 6px 4px 10px;
   white-space: nowrap;
   cursor: pointer;
-  transition: all 0.15s ease;
 }
 
 .quick-chip:hover {
-  background: var(--bg-hover);
   color: var(--text-primary);
+}
+
+.chip-delete-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  padding: 3px 6px 3px 2px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.chip-delete-btn svg {
+  width: 12px;
+  height: 12px;
+}
+
+.chip-delete-btn:hover {
+  color: var(--accent-rose);
 }
 
 /* Weather Flow */

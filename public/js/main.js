@@ -2,7 +2,7 @@
  * Frontend Module: Main Application Controller & Event Wiring
  */
 import { TRANSLATIONS } from './i18n.js';
-import { getWeatherData, searchCitiesApi, compareCitiesData, getSearchHistory } from './api.js';
+import { getWeatherData, searchCitiesApi, compareCitiesData, getSearchHistory, deleteHistoryItemApi } from './api.js';
 import { UIManager } from './ui.js';
 
 class WeatherApp {
@@ -26,10 +26,6 @@ class WeatherApp {
     this.compareSearch2 = document.getElementById("compareSearch2");
     this.compareResults2 = document.getElementById("compareResults2");
     this.compareBtn = document.getElementById("compareBtn");
-
-    // City 1 & 2 selected payload
-    this.selectedCity1 = { cityKey: "hanoi", name: "Hà Nội", country: "Việt Nam" };
-    this.selectedCity2 = { cityKey: "tokyo", name: "Tokyo", country: "Nhật Bản" };
 
     this.unitToggleBtn = document.getElementById("unitToggleBtn");
     this.langToggleBtn = document.getElementById("langToggleBtn");
@@ -111,7 +107,6 @@ class WeatherApp {
         this.renderSearchResults(results, this.compareResults1, (cityObj) => {
           this.compareSearch1.value = `${cityObj.name}, ${cityObj.country}`;
           this.compareSearch1.setAttribute("data-key", cityObj.cityKey || `${Number(cityObj.lat).toFixed(2)}_${Number(cityObj.lon).toFixed(2)}`);
-          this.selectedCity1 = cityObj;
           this.compareResults1.classList.add("hidden");
         });
       }, 300);
@@ -130,7 +125,6 @@ class WeatherApp {
         this.renderSearchResults(results, this.compareResults2, (cityObj) => {
           this.compareSearch2.value = `${cityObj.name}, ${cityObj.country}`;
           this.compareSearch2.setAttribute("data-key", cityObj.cityKey || `${Number(cityObj.lat).toFixed(2)}_${Number(cityObj.lon).toFixed(2)}`);
-          this.selectedCity2 = cityObj;
           this.compareResults2.classList.add("hidden");
         });
       }, 300);
@@ -262,6 +256,18 @@ class WeatherApp {
     }
   }
 
+  async refreshHistoryUI() {
+    const history = await getSearchHistory();
+    this.ui.renderHistory(
+      history, 
+      (cKey) => this.loadWeather({ cityKey: cKey }),
+      async (cKey) => {
+        await deleteHistoryItemApi(cKey);
+        this.refreshHistoryUI();
+      }
+    );
+  }
+
   async loadWeather(params) {
     if (!navigator.onLine) {
       this.ui.showError(TRANSLATIONS[this.currentLang].offline_msg);
@@ -280,10 +286,7 @@ class WeatherApp {
         this.clearSearchBtn.classList.remove("hidden");
       }
 
-      const history = await getSearchHistory();
-      this.ui.renderHistory(history, (cKey) => {
-        this.loadWeather({ cityKey: cKey });
-      });
+      this.refreshHistoryUI();
     } catch (err) {
       this.ui.showError(err.message);
     }

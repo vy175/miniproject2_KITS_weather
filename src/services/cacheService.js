@@ -33,11 +33,20 @@ class CacheService {
   }
 
   addHistory(cityKey, cityName, temperature, weatherDesc) {
+    // Xóa record cũ nếu trùng cityKey để không bị lặp lại nhiều lần
+    db.prepare(`DELETE FROM search_history WHERE city_key = ?`).run(cityKey);
+
     const stmt = db.prepare(`
       INSERT INTO search_history (city_key, city_name, temperature, weather_desc)
       VALUES (?, ?, ?, ?)
     `);
     stmt.run(cityKey, cityName, temperature, weatherDesc);
+  }
+
+  deleteHistory(cityKey) {
+    const stmt = db.prepare(`DELETE FROM search_history WHERE city_key = ?`);
+    const result = stmt.run(cityKey);
+    return result.changes > 0;
   }
 
   getRecentHistory(limit = 8) {
@@ -58,4 +67,3 @@ class CacheService {
 }
 
 module.exports = new CacheService();
-

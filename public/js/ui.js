@@ -110,21 +110,36 @@ export class UIManager {
     if (window.feather) feather.replace();
   }
 
-  renderHistory(historyList, onSelectCity) {
+  renderHistory(historyList, onSelectCity, onDeleteCity) {
     if (!historyList || historyList.length === 0) {
       this.historyList.innerHTML = "";
       return;
     }
 
-    this.historyList.innerHTML = historyList.slice(0, 5).map(item => `
-      <button class="quick-chip" data-city="${item.cityKey}">
-        ${item.cityName} · ${item.temperature}°
-      </button>
+    this.historyList.innerHTML = historyList.slice(0, 6).map(item => `
+      <div class="quick-chip-wrap">
+        <button class="quick-chip" data-city="${item.cityKey}">
+          ${item.cityName} · ${item.temperature}°
+        </button>
+        <button class="chip-delete-btn" data-delete-key="${item.cityKey}" title="Xóa khỏi lịch sử">
+          <i data-feather="x"></i>
+        </button>
+      </div>
     `).join("");
 
     this.historyList.querySelectorAll(".quick-chip").forEach(chip => {
       chip.addEventListener("click", () => onSelectCity(chip.getAttribute("data-city")));
     });
+
+    this.historyList.querySelectorAll(".chip-delete-btn").forEach(delBtn => {
+      delBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const cityKey = delBtn.getAttribute("data-delete-key");
+        onDeleteCity(cityKey);
+      });
+    });
+
+    if (window.feather) feather.replace();
   }
 
   renderCompare(result, lang) {
@@ -164,4 +179,3 @@ export class UIManager {
     if (window.feather) feather.replace();
   }
 }
-

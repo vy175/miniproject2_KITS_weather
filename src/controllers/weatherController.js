@@ -80,6 +80,15 @@ class WeatherController {
     });
   }
 
+  deleteHistoryItem(req, res) {
+    const { cityKey } = req.params;
+    if (!cityKey) {
+      return res.status(400).json({ success: false, error: "Thiếu cityKey." });
+    }
+    const success = cacheService.deleteHistory(cityKey);
+    return res.json({ success: true, deleted: success });
+  }
+
   getCities(req, res) {
     const list = Object.entries(CITIES).map(([key, data]) => ({
       key,
