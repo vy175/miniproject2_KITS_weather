@@ -116,12 +116,13 @@ export class UIManager {
       return;
     }
 
-    this.historyList.innerHTML = historyList.slice(0, 6).map(item => `
+    // Hiển thị lên tới 10 thành phố gần nhất
+    this.historyList.innerHTML = historyList.slice(0, 10).map(item => `
       <div class="quick-chip-wrap">
         <button class="quick-chip" data-city="${item.cityKey}">
           ${item.cityName} · ${item.temperature}°
         </button>
-        <button class="chip-delete-btn" data-delete-key="${item.cityKey}" title="Xóa khỏi lịch sử">
+        <button class="chip-delete-btn" data-delete-key="${item.cityKey}" title="Xóa">
           <i data-feather="x"></i>
         </button>
       </div>

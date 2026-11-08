@@ -41,6 +41,14 @@ class CacheService {
       VALUES (?, ?, ?, ?)
     `);
     stmt.run(cityKey, cityName, temperature, weatherDesc);
+
+    // Tự động giữ tối đa 20 records mới nhất trong DB
+    db.prepare(`
+      DELETE FROM search_history 
+      WHERE id NOT IN (
+        SELECT id FROM search_history ORDER BY id DESC LIMIT 20
+      )
+    `).run();
   }
 
   deleteHistory(cityKey) {
@@ -49,7 +57,12 @@ class CacheService {
     return result.changes > 0;
   }
 
-  getRecentHistory(limit = 8) {
+  clearAllHistory() {
+    db.prepare(`DELETE FROM search_history`).run();
+    return true;
+  }
+
+  getRecentHistory(limit = 12) {
     return db.prepare(`
       SELECT city_key as cityKey, city_name as cityName, temperature, weather_desc as weatherDescription,
              strftime('%H:%M', created_at, 'localtime') as queriedAt

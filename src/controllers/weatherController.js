@@ -73,7 +73,7 @@ class WeatherController {
   }
 
   getHistory(req, res) {
-    const history = cacheService.getRecentHistory(8);
+    const history = cacheService.getRecentHistory(12);
     return res.json({
       success: true,
       data: history
@@ -87,6 +87,11 @@ class WeatherController {
     }
     const success = cacheService.deleteHistory(cityKey);
     return res.json({ success: true, deleted: success });
+  }
+
+  clearAllHistory(req, res) {
+    cacheService.clearAllHistory();
+    return res.json({ success: true, message: "Đã xóa toàn bộ lịch sử." });
   }
 
   getCities(req, res) {
