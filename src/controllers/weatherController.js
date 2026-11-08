@@ -7,7 +7,7 @@ const { CITIES } = require('../config/cities');
  */
 class WeatherController {
   async getWeather(req, res) {
-    const { city, mock_error } = req.query;
+    const { city, lat, lon, name, country, mock_error } = req.query;
 
     if (mock_error === 'true') {
       return res.status(500).json({
@@ -16,15 +16,15 @@ class WeatherController {
       });
     }
 
-    if (!city) {
+    if (!city && (!lat || !lon)) {
       return res.status(400).json({
         success: false,
-        error: "Thiếu tham số 'city'. Ví dụ hợp lệ: /api/weather?city=hanoi"
+        error: "Thiếu tham số 'city' hoặc tọa độ ('lat', 'lon'). Ví dụ: /api/weather?city=hanoi"
       });
     }
 
     try {
-      const result = await weatherService.getWeatherByCity(city);
+      const result = await weatherService.getWeather({ cityKey: city, lat, lon, name, country });
       res.setHeader('X-Cache', result.cached ? 'HIT' : 'MISS');
       return res.json({
         success: true,
@@ -37,6 +37,20 @@ class WeatherController {
         success: false,
         error: err.message
       });
+    }
+  }
+
+  async searchCities(req, res) {
+    const { q } = req.query;
+    if (!q || q.trim().length === 0) {
+      return res.json({ success: true, data: [] });
+    }
+
+    try {
+      const results = await weatherService.searchCities(q);
+      return res.json({ success: true, data: results });
+    } catch (err) {
+      return res.status(500).json({ success: false, error: err.message });
     }
   }
 

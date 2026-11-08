@@ -25,14 +25,12 @@
       </nav>
 
       <div class="header-controls">
-        <!-- Language Switcher Pill -->
         <button id="langToggleBtn" class="pill-toggle" title="Switch Language">
           <span class="lang-vi active">VI</span>
           <span class="sep">/</span>
           <span class="lang-en">EN</span>
         </button>
 
-        <!-- Temperature Unit Pill -->
         <button id="unitToggleBtn" class="pill-toggle" title="Switch Unit">
           <span class="unit-c active">°C</span>
           <span class="sep">/</span>
@@ -49,24 +47,26 @@
 
     <!-- VIEW 1: SINGLE WEATHER -->
     <main id="singleView" class="view-panel">
-      <!-- Selector & History Bar -->
+      <!-- Search Input with Autocomplete Box -->
       <section class="toolbar-section">
-        <div class="select-wrapper">
-          <i data-feather="map-pin" class="field-icon"></i>
-          <select id="citySelect" class="city-dropdown">
-            <option value="hanoi" selected>Hà Nội (Hanoi)</option>
-            <option value="danang">Đà Nẵng (Da Nang)</option>
-            <option value="hcm">TP. Hồ Chí Minh (Ho Chi Minh City)</option>
-            <option value="tokyo">Tokyo</option>
-            <option value="seoul">Seoul</option>
-            <option value="london">London</option>
-            <option value="paris">Paris</option>
-            <option value="newyork">New York</option>
-            <option value="sydney">Sydney</option>
-          </select>
-          <i data-feather="chevron-down" class="dropdown-icon"></i>
+        <div class="search-input-box">
+          <i data-feather="search" class="field-icon"></i>
+          <input 
+            type="text" 
+            id="citySearchInput" 
+            class="city-search-field" 
+            placeholder="Tìm thành phố (Hà Nội, Đà Lạt, Tokyo, Paris...)"
+            autocomplete="off"
+          />
+          <button id="clearSearchBtn" class="btn-clear hidden" title="Clear">
+            <i data-feather="x"></i>
+          </button>
+          
+          <!-- Dropdown Autocomplete Results -->
+          <div id="searchResultsList" class="search-dropdown hidden"></div>
         </div>
 
+        <!-- Quick Chips (History / Popular) -->
         <div class="chips-container" id="historyList"></div>
       </section>
 

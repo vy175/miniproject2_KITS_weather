@@ -1,104 +1,107 @@
-# 🌤️ Fullstack Weather Dashboard (Node.js Express + SQLite + Open-Meteo)
+# 🌤️ Fullstack Weather Dashboard (Layered Architecture & Modular Design)
 
-Dự án ứng dụng web hiển thị dữ liệu thời tiết thời gian thực theo kiến trúc **Fullstack chuyên nghiệp (Backend Gateway + SQLite Persistent Database + Frontend Client)**, tích hợp các tính năng nâng cao: **So sánh thời tiết 2 thành phố (VS Mode)**, **Hệ thống Cảnh báo & Lời khuyên sức khỏe thông minh (Smart Rule Engine)**, **Lịch sử tra cứu bền vững (No Auth)** và **Kiểm thử tự động 9/9 Test Cases**.
+Dự án ứng dụng web hiển thị dữ liệu thời tiết thời gian thực được tổ chức theo chuẩn **Layered Architecture (Kiến trúc phân tầng chuẩn công nghiệp)** ở Backend và **ES6 Modular Pattern** ở Frontend, tích hợp cơ sở dữ liệu SQLite, hệ thống cảnh báo thông minh, so sánh thời tiết 2 thành phố và hỗ trợ đa ngôn ngữ (VI/EN).
 
 ---
 
-## 🏛️ 1. Kiến trúc Hệ thống (Fullstack Architecture)
+## 🏛️ 1. Cấu trúc Thư mục Chuẩn (Modular & Layered Architecture)
 
 ```
-[ Client (Browser) ]
-        │
-        ├─► Tab 1: Xem thời tiết đơn (Nhiệt độ, Cảnh báo, Lịch sử, Đổi °C/°F)
-        ├─► Tab 2: So sánh đối đầu 2 thành phố (VS View & Delta Analysis)
-        │
-        ▼ (RESTful API nội bộ: /api/weather, /api/weather/compare, /api/history, /api/health)
-[ Backend (Node.js Express Gateway) ]
-        │
-        ├── Rule-based Alert Engine (Phân tích nguy cơ nắng nóng, rét đậm, dông bão, gió lớn)
-        ├── Comparison Analytics (Promise.all song song, tính độ lệch nhiệt độ/độ ẩm/gió)
-        │
-        ▼
-[ SQLite Database (weather.db) ]
-        ├── Bảng weather_cache: Cache bền vững theo TTL 5 phút (X-Cache: HIT / MISS)
-        └── Bảng search_history: Lịch sử tra cứu không cần đăng nhập (No-Auth Audit)
-        │
-        ▼ (Nếu Cache MISS)
-[ Open-Meteo Public API ] (https://api.open-meteo.com)
+miniPrj_KITS/
+├── src/                                   # BACKEND (Layered Architecture)
+│   ├── config/
+│   │   └── cities.js                      # Cấu hình danh mục tọa độ thành phố & mã WMO
+│   ├── database/
+│   │   └── connection.js                  # Kết nối SQLite Database (WAL mode & Table init)
+│   ├── services/
+│   │   ├── weatherService.js              # Gọi Open-Meteo API Gateway & Data Normalization
+│   │   ├── cacheService.js                # Quản lý Persistent Cache (TTL 5m) & Search History
+│   │   └── alertService.js                # Rule-based Engine phân tích cảnh báo & lời khuyên sức khỏe
+│   ├── controllers/
+│   │   └── weatherController.js           # Tiếp nhận HTTP Request, Validate, điều hướng & Response
+│   └── routes/
+│       └── apiRoutes.js                   # Định tuyến RESTful Endpoints (/api/weather, /api/compare...)
+│
+├── server.js                              # Entry point khởi chạy Express Server & Middlewares
+│
+├── public/                                # FRONTEND (ES6 Modules)
+│   ├── index.html                         # Giao diện HTML Semantic
+│   ├── style.css                          # Thiết kế CSS hiện đại, Compact Spacing
+│   └── js/
+│       ├── i18n.js                        # Từ điển đa ngôn ngữ (Tiếng Việt 🇻🇳 / English 🇬🇧)
+│       ├── api.js                         # Module chuyên trách giao tiếp HTTP với Backend
+│       ├── ui.js                          # Module Render giao diện, điều khiển DOM & States
+│       └── main.js                        # Controller khởi tạo ứng dụng & kết nối sự kiện
+│
+├── test.js                                # Bộ kiểm thử tự động 9/9 Test Cases (Automated Test Suite)
+├── weather.db                             # File cơ sở dữ liệu SQLite
+├── package.json
+└── README.md
 ```
 
 ---
 
-## 🌟 2. Các Tính năng Nâng cao (Advanced Features)
+## 🌟 2. Các Quyết định Kỹ thuật (Technical Decisions)
 
-### 1. ⚔️ So sánh thời tiết giữa 2 thành phố (Weather Comparison Mode - VS View)
-* **Backend (`GET /api/weather/compare?city1=...&city2=...`)**:
-  - Tận dụng `Promise.all()` gọi song song cả 2 thành phố (ưu tiên đọc SQLite Cache trước).
-  - Tự động tính toán độ lệch: Chênh lệch nhiệt độ (`tempDiff`), độ ẩm (`humidityDiff`), tốc độ gió (`windDiff`).
-  - Tự động sinh văn bản nhận định và so sánh du lịch: *VD: "Hà Nội đang ấm/nóng hơn Tokyo 13°C. Độ ẩm tại Hà Nội cao hơn đáng kể (+12%)."*
-* **Frontend**: Tab chuyển đổi mượt mà, hiển thị 2 thẻ đối đầu kèm vòng tròn **VS** và bảng thống kê Delta.
+### ❓ Vì sao tách lớp Backend (Layered Architecture)?
+1. **Separation of Concerns (SoC)**:
+   - **`Routes`**: Chỉ định nghĩa các đường dẫn URL và phương thức HTTP.
+   - **`Controllers`**: Chỉ nhận request, kiểm tra tính hợp lệ của tham số (`validation`) và trả về mã HTTP chuẩn (`200`, `400`, `404`, `500`).
+   - **`Services`**: Chứa toàn bộ nghiệp vụ (gọi Open-Meteo, tính toán độ lệch so sánh giữa 2 thành phố, phân tích quy tắc cảnh báo).
+   - **`Database`**: Tách riêng logic truy vấn cơ sở dữ liệu SQLite (bảng cache và bảng history).
+2. **Khả năng mở rộng & Bảo trì**: Khi muốn thêm tính năng mới hoặc đổi nguồn API, chỉ cần can thiệp đúng Service tương ứng mà không làm ảnh hưởng đến các tầng khác.
 
-### 2. 🧠 Hệ thống Cảnh báo Thời tiết Thông minh (Rule-based Weather Alerts)
-* Backend tích hợp Rule Engine tự động phân tích:
-  - **Mưa dông sét / Bão nguy hiểm**: Cảnh báo đỏ `danger` kèm lưu ý an toàn.
-  - **Nắng nóng gay gắt (≥ 35°C)**: Cảnh báo vàng `warning` nhắc nhở bù nước và chống nắng.
-  - **Trời rét đậm (≤ 10°C)**: Cảnh báo xanh `info` nhắc giữ ấm.
-  - **Gió lớn (≥ 25 km/h)**: Cảnh báo gió giật mạnh.
-  - **Thời tiết lý tưởng**: Khuyến khích các hoạt động ngoài trời.
-
-### 3. 🗄️ Cơ sở dữ liệu SQLite (`weather.db`) bền vững (No Auth)
-* Sử dụng thư viện `better-sqlite3` hiệu năng cao.
-* **Persistent Cache**: Dù có tắt hoặc restart server, cache 5 phút vẫn còn hiệu lực trong database.
-* **Search History**: Tự động lưu lịch sử vào SQLite mà **không cần người dùng phải đăng nhập**.
-
-### 4. 🎛️ Tính năng Trải nghiệm người dùng (UX)
-* Chuyển đổi nhanh giữa độ C và độ F (`°C / °F Toggle`).
-* Tự động ghi nhớ thành phố xem gần nhất qua `localStorage`.
-* Đèn báo tình trạng kết nối SQLite Backend Server.
-* Badge hiển thị nguồn gốc dữ liệu: `SQLITE CACHE (HIT)` vs `LIVE (MISS)`.
+### ❓ Vì sao tách module Frontend (ES6 Modules)?
+Thay vì dồn hàng trăm dòng code vào 1 file `app.js` khổng lồ:
+* **`api.js`**: Đóng gói các hàm `fetch()`. Khi Backend đổi endpoint, chỉ cần sửa ở 1 nơi.
+* **`ui.js`**: Chuyên trách cập nhật giao diện (DOM manipulation, hiển thị loading/error, render thẻ thời tiết, format ngày giờ).
+* **`i18n.js`**: Tách riêng từ điển dịch thuật, dễ dàng bổ sung thêm ngôn ngữ khác trong tương lai.
+* **`main.js`**: Điều phối luồng ứng dụng và lắng nghe sự kiện từ người dùng.
 
 ---
 
-## 🧪 3. Bảng Kịch bản Kiểm thử (9 Test Cases)
+## 🚀 3. Danh sách Tính năng Chính
 
-| STT | Tên Test Case | Endpoint / Thao tác | Kết quả mong đợi |
-| :---: | :--- | :--- | :--- |
-| **TC-01** | Health Check | `GET /api/health` | Trả về `status: OK`, database: `SQLite (weather.db)`. |
-| **TC-02** | Danh mục thành phố | `GET /api/cities` | Trả về danh sách 9 thành phố lớn. |
-| **TC-03** | Tra cứu thời tiết & Cảnh báo | `GET /api/weather?city=hanoi` | Dữ liệu thời tiết đầy đủ, kèm object `alert` do Rule Engine phân tích. |
-| **TC-04** | Kiểm tra SQLite Cache | Gọi lại `city=hanoi` | Header trả về `X-Cache: HIT`, `cached: true` từ SQLite. |
-| **TC-05** | So sánh 2 thành phố | `GET /api/weather/compare?city1=hanoi&city2=tokyo` | Trả về dữ liệu song song của 2 thành phố, các chỉ số chênh lệch `delta` và đoạn văn bản `summary`. |
-| **TC-06** | So sánh trùng thành phố | `city1=hanoi&city2=hanoi` | Backend chặn và trả về lỗi `400 Bad Request`. |
-| **TC-07** | Thiếu tham số | `GET /api/weather` | Backend trả về lỗi `400 Bad Request`. |
-| **TC-08** | Giả lập lỗi Server | `mock_error=true` | Backend trả về `500 Internal Server Error`, Frontend hiển thị giao diện bắt lỗi đỏ. |
-| **TC-09** | Lịch sử SQLite | `GET /api/history` | Trả về danh sách lịch sử lưu trữ trong SQLite. |
+1. **Xem thời tiết chi tiết**: Nhiệt độ, độ ẩm, tốc độ gió, độ cao địa hình, tọa độ, mô tả chuẩn WMO.
+2. **Chế độ So sánh (Compare Mode)**: Gọi song song `Promise.all()`, tính toán độ lệch nhiệt độ/độ ẩm/gió và tự động sinh câu nhận định phân tích.
+3. **Cảnh báo thông minh (Smart Alert Engine)**: Tự động cảnh báo dông sét, rét đậm, nắng nóng gay gắt hoặc thời tiết thuận lợi.
+4. **Cơ sở dữ liệu SQLite (`weather.db`)**:
+   - Cache bền vững 5 phút (TTL).
+   - Lịch sử tra cứu gần đây (Quick Chips) không cần đăng nhập (No-Auth).
+5. **Chuyển đổi ngôn ngữ (`VI / EN`)**: Dịch toàn bộ giao diện và dữ liệu thời tiết chỉ với 1 click.
+6. **Đổi đơn vị nhiệt độ (`°C / °F`)**: Tính toán chuyển đổi tức thì.
+7. **Xử lý toàn diện lỗi & Offline**: Bắt lỗi mạng khi mất Internet và timeout tự động.
 
 ---
 
-## 💻 4. Hướng dẫn khởi chạy & Chạy Test
+## 🧪 4. Kiểm thử Tự động (Automated Testing)
 
-### 1. Khởi chạy ứng dụng:
-```bash
-# Cài đặt thư viện nếu chưa có:
-npm install
-
-# Chạy Server Backend & Frontend:
-npm start
-```
-Truy cập: 👉 **http://localhost:3000**
-
-### 2. Chạy bộ kiểm thử tự động (Automated Tests):
+Chạy bộ kiểm thử tự động với 9 kịch bản bao phủ:
 ```bash
 npm test
 ```
-*Kết quả sẽ hiển thị `9/9 tests PASS` xanh toàn bộ.*
+**Kết quả: 9/9 Tests PASS**
+* `TC-01`: Health Check Endpoint (`/api/health`)
+* `TC-02`: Lấy danh sách thành phố (`/api/cities`)
+* `TC-03`: Fetch thời tiết Hà Nội & Cảnh báo thông minh
+* `TC-04`: Kiểm tra SQLite Cache HIT (`X-Cache: HIT`)
+* `TC-05`: So sánh 2 thành phố (`/api/weather/compare`)
+* `TC-06`: Chặn lỗi so sánh trùng thành phố (`400 Bad Request`)
+* `TC-07`: Bắt lỗi thiếu tham số (`400 Bad Request`)
+* `TC-08`: Giả lập lỗi Server 500 (`mock_error=true`)
+* `TC-09`: Kiểm tra lịch sử lưu trong SQLite (`/api/history`)
 
 ---
 
-## 🎥 5. Kịch bản quay Video Demo (1.5 - 2 phút)
+## 💻 5. Hướng dẫn Khởi chạy
 
-* **0:00 - 0:25**: Mở `http://localhost:3000`. Giới thiệu kiến trúc Fullstack (Express + SQLite + Open-Meteo).
-* **0:25 - 0:45**: Xem thời tiết Hà Nội, chỉ vào thanh **Cảnh báo thông minh** (Rule Engine) và badge `LIVE (MISS)`. Nhấn Làm mới để thấy chuyển sang `SQLITE CACHE (HIT)`.
-* **0:45 - 1:10**: Chuyển sang Tab **"So sánh 2 thành phố"**. Chọn Hà Nội vs Tokyo, nhấn **"So sánh ngay"** để trình diễn giao diện VS, độ lệch nhiệt độ và nhận định so sánh tự động.
-* **1:10 - 1:30**: Nhấn nút **"Test Lỗi BE (500)"** và thử ngắt mạng (F12 Offline) để biểu diễn khả năng bắt lỗi & phục hồi.
-* **1:30 - 1:45**: Mở terminal gõ `npm test` để show bộ test tự động 9/9 PASS.
+```bash
+# 1. Cài đặt thư viện:
+npm install
+
+# 2. Khởi chạy Server:
+npm start
+
+# 3. Mở trình duyệt:
+http://localhost:3000
+```

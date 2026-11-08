@@ -60,3 +60,4 @@ class AlertService {
 }
 
 module.exports = new AlertService();
+

@@ -109,7 +109,7 @@ body {
   font-weight: 600;
 }
 
-/* Header Controls (Language + Unit) */
+/* Header Controls */
 .header-controls {
   display: flex;
   align-items: center;
@@ -170,27 +170,133 @@ body {
   gap: 12px;
 }
 
-/* Toolbar & Selector */
+/* Toolbar & Search Box */
 .toolbar-section {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.select-wrapper {
+.search-input-box {
   position: relative;
   width: 100%;
 }
 
 .field-icon {
   position: absolute;
-  left: 12px;
+  left: 14px;
   top: 50%;
   transform: translateY(-50%);
   width: 16px;
   height: 16px;
   color: var(--text-secondary);
   pointer-events: none;
+}
+
+.btn-clear {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+}
+
+.btn-clear svg {
+  width: 15px;
+  height: 15px;
+}
+
+.btn-clear:hover {
+  color: var(--text-primary);
+}
+
+.city-search-field {
+  width: 100%;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  color: var(--text-primary);
+  padding: 10px 38px 10px 40px;
+  border-radius: var(--radius-lg);
+  font-size: 0.9rem;
+  font-weight: 500;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.city-search-field:focus {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.15);
+}
+
+/* Autocomplete Dropdown List */
+.search-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  width: 100%;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+  z-index: 50;
+  max-height: 240px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.search-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  font-size: 0.85rem;
+  color: var(--text-primary);
+  cursor: pointer;
+  border-bottom: 1px solid var(--border-light);
+  transition: background 0.12s ease;
+}
+
+.search-item:last-child {
+  border-bottom: none;
+}
+
+.search-item:hover {
+  background: var(--bg-hover);
+}
+
+.search-item-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.search-item-name {
+  font-weight: 600;
+}
+
+.search-item-sub {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.search-empty {
+  padding: 12px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+/* Select wrapper for compare view */
+.select-wrapper {
+  position: relative;
+  width: 100%;
 }
 
 .dropdown-icon {
@@ -211,17 +317,12 @@ body {
   background: var(--bg-card);
   border: 1px solid var(--border-light);
   color: var(--text-primary);
-  padding: 10px 36px 10px 36px;
+  padding: 10px 36px 10px 14px;
   border-radius: var(--radius-lg);
   font-size: 0.9rem;
   font-weight: 500;
   cursor: pointer;
   outline: none;
-  transition: border-color 0.15s ease;
-}
-
-.city-dropdown:focus {
-  border-color: var(--border-focus);
 }
 
 /* Chips Container */

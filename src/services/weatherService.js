@@ -6,24 +6,78 @@ const alertService = require('./alertService');
  * Service: Third-party Open-Meteo API Gateway & Data Normalization
  */
 class WeatherService {
-  async getWeatherByCity(cityKey) {
-    const key = cityKey.toLowerCase();
-    const cityInfo = CITIES[key];
+  /**
+   * Search any city globally via Open-Meteo Geocoding API
+   */
+  async searchCities(query) {
+    if (!query || query.trim().length === 0) return [];
 
-    if (!cityInfo) {
-      const err = new Error(`Thành phố '${cityKey}' không được hỗ trợ trong danh mục.`);
-      err.statusCode = 404;
+    const url = `https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(query.trim())}&count=6&language=vi`;
+    
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+
+    try {
+      const res = await fetch(url, { signal: controller.signal });
+      clearTimeout(timeout);
+      if (!res.ok) return [];
+
+      const data = await res.json();
+      if (!data.results) return [];
+
+      return data.results.map(item => ({
+        id: item.id,
+        name: item.name,
+        country: item.country || "",
+        admin1: item.admin1 || "",
+        lat: item.latitude,
+        lon: item.longitude
+      }));
+    } catch (err) {
+      console.warn("[Geocoding Search Error]:", err.message);
+      return [];
+    }
+  }
+
+  /**
+   * Fetch weather by Coordinates OR predefined city key
+   */
+  async getWeather({ cityKey, lat, lon, name, country }) {
+    let resolvedLat, resolvedLon, resolvedName, resolvedCountry, resolvedKey;
+
+    if (lat !== undefined && lon !== undefined && name) {
+      resolvedLat = Number(lat);
+      resolvedLon = Number(lon);
+      resolvedName = name;
+      resolvedCountry = country || "";
+      resolvedKey = `${resolvedLat.toFixed(2)}_${resolvedLon.toFixed(2)}`;
+    } else if (cityKey) {
+      const key = cityKey.toLowerCase();
+      const cityInfo = CITIES[key];
+      if (!cityInfo) {
+        const err = new Error(`Thành phố '${cityKey}' không được tìm thấy.`);
+        err.statusCode = 404;
+        throw err;
+      }
+      resolvedLat = cityInfo.lat;
+      resolvedLon = cityInfo.lon;
+      resolvedName = cityInfo.name;
+      resolvedCountry = cityInfo.country;
+      resolvedKey = key;
+    } else {
+      const err = new Error("Thiếu tham số vị trí (city hoặc lat/lon).");
+      err.statusCode = 400;
       throw err;
     }
 
     // Check persistent SQLite cache first
-    const cachedData = cacheService.get(key);
+    const cachedData = cacheService.get(resolvedKey);
     if (cachedData) {
       return { data: cachedData, cached: true };
     }
 
-    // Fetch from Open-Meteo
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${cityInfo.lat}&longitude=${cityInfo.lon}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&timezone=auto`;
+    // Fetch from Open-Meteo Weather API
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${resolvedLat}&longitude=${resolvedLon}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&timezone=auto`;
 
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 7000);
@@ -66,11 +120,11 @@ class WeatherService {
 
     const normalizedData = {
       city: {
-        key,
-        name: cityInfo.name,
-        country: cityInfo.country,
-        lat: cityInfo.lat,
-        lon: cityInfo.lon
+        key: resolvedKey,
+        name: resolvedName,
+        country: resolvedCountry,
+        lat: resolvedLat,
+        lon: resolvedLon
       },
       current: currentMetrics,
       alert,
@@ -79,8 +133,8 @@ class WeatherService {
     };
 
     // Save to SQLite Cache & Search History
-    cacheService.set(key, normalizedData);
-    cacheService.addHistory(key, cityInfo.name, normalizedData.current.temperature, condition.desc);
+    cacheService.set(resolvedKey, normalizedData);
+    cacheService.addHistory(resolvedKey, resolvedName, normalizedData.current.temperature, condition.desc);
 
     return { data: normalizedData, cached: false };
   }
@@ -98,10 +152,9 @@ class WeatherService {
       throw err;
     }
 
-    // Parallel fetching via Promise.all
     const [res1, res2] = await Promise.all([
-      this.getWeatherByCity(cityKey1),
-      this.getWeatherByCity(cityKey2)
+      this.getWeather({ cityKey: cityKey1 }),
+      this.getWeather({ cityKey: cityKey2 })
     ]);
 
     const c1 = res1.data;

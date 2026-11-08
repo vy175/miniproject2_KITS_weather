@@ -101,3 +101,4 @@ export const WMO_DESC = {
   96: { vi: "Dông kèm mưa đá nhỏ", en: "Thunderstorm with slight hail" },
   99: { vi: "Dông bão kèm mưa đá to", en: "Thunderstorm with heavy hail" }
 };
+
