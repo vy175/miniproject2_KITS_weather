@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Weather Dashboard - Open-Meteo API</title>
+  <link rel="stylesheet" href="style.css">
+  <!-- Feather Icons -->
+  <script src="https://unpkg.com/feather-icons"></script>
+</head>
+<body>
+  <div class="background-decor">
+    <div class="blob blob-1"></div>
+    <div class="blob blob-2"></div>
+  </div>
+
+  <main class="dashboard-card">
+    <!-- Header -->
+    <header class="card-header">
+      <div class="title-wrap">
+        <i data-feather="cloud-sun" class="header-icon"></i>
+        <h1>Weather Dashboard</h1>
+      </div>
+      <p class="subtitle">Dữ liệu thời tiết thời gian thực từ Open-Meteo API</p>
+    </header>
+
+    <!-- Controls -->
+    <section class="controls-section">
+      <div class="form-group">
+        <label for="citySelect">
+          <i data-feather="map-pin"></i> Chọn thành phố
+        </label>
+        <select id="citySelect" class="styled-select">
+          <option value="hanoi" selected>Hà Nội (Việt Nam)</option>
+          <option value="danang">Đà Nẵng (Việt Nam)</option>
+          <option value="hcm">TP. Hồ Chí Minh (Việt Nam)</option>
+          <option value="tokyo">Tokyo (Nhật Bản)</option>
+          <option value="seoul">Seoul (Hàn Quốc)</option>
+          <option value="london">London (Vương quốc Anh)</option>
+          <option value="paris">Paris (Pháp)</option>
+          <option value="newyork">New York (Mỹ)</option>
+          <option value="sydney">Sydney (Úc)</option>
+        </select>
+      </div>
+
+      <div class="button-group">
+        <button id="refreshBtn" class="btn btn-secondary" title="Làm mới dữ liệu">
+          <i data-feather="refresh-cw"></i> Làm mới
+        </button>
+        <!-- Nút test giả lập lỗi phục vụ demo và kiểm thử -->
+        <button id="testErrorBtn" class="btn btn-warning" title="Giả lập lỗi API để kiểm thử UI lỗi">
+          <i data-feather="alert-triangle"></i> Test Lỗi API
+        </button>
+      </div>
+    </section>
+
+    <!-- Offline Alert -->
+    <div id="offlineBanner" class="alert alert-offline hidden" role="alert">
+      <i data-feather="wifi-off"></i>
+      <span>Bạn đang mất kết nối Internet! Hãy kiểm tra đường truyền mạng.</span>
+    </div>
+
+    <!-- Loading State -->
+    <div id="loadingState" class="state-container hidden">
+      <div class="spinner"></div>
+      <p>Đang tải dữ liệu thời tiết...</p>
+    </div>
+
+    <!-- Error State -->
+    <div id="errorState" class="state-container error-box hidden">
+      <i data-feather="alert-circle" class="state-icon icon-error"></i>
+      <h3 id="errorTitle">Không thể lấy dữ liệu</h3>
+      <p id="errorMessage">Đã có lỗi xảy ra trong quá trình kết nối tới Open-Meteo API.</p>
+      <button id="retryBtn" class="btn btn-primary">
+        <i data-feather="rotate-ccw"></i> Thử lại
+      </button>
+    </div>
+
+    <!-- Weather Content Display -->
+    <div id="weatherContent" class="weather-content">
+      <!-- Main Overview -->
+      <div class="weather-main">
+        <div class="weather-condition-icon" id="conditionIconWrap">
+          <i data-feather="sun" id="weatherIcon" class="big-icon"></i>
+        </div>
+        <div class="weather-temp-wrap">
+          <span class="temp-value" id="temperature">--</span>
+          <span class="temp-unit">°C</span>
+        </div>
+        <div class="weather-desc" id="weatherDescription">--</div>
+        <div class="weather-time" id="updateTime">Cập nhật lúc: --</div>
+      </div>
+
+      <!-- Secondary Metrics Grid -->
+      <div class="metrics-grid">
+        <div class="metric-card">
+          <div class="metric-icon humidity">
+            <i data-feather="droplet"></i>
+          </div>
+          <div class="metric-info">
+            <span class="metric-label">Độ ẩm</span>
+            <span class="metric-value" id="humidity">-- %</span>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon wind">
+            <i data-feather="wind"></i>
+          </div>
+          <div class="metric-info">
+            <span class="metric-label">Tốc độ gió</span>
+            <span class="metric-value" id="windSpeed">-- km/h</span>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon coord">
+            <i data-feather="compass"></i>
+          </div>
+          <div class="metric-info">
+            <span class="metric-label">Tọa độ</span>
+            <span class="metric-value" id="coordinates">--</span>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon elevation">
+            <i data-feather="activity"></i>
+          </div>
+          <div class="metric-info">
+            <span class="metric-label">Độ cao (Elevation)</span>
+            <span class="metric-value" id="elevation">-- m</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="card-footer">
+      <span>API: <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a> (Miễn phí, Không API Key, CORS Enabled)</span>
+    </footer>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>
+

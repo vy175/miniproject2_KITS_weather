@@ -1,0 +1,23 @@
+{
+  "name": "weather-dashboard-kits",
+  "version": "1.0.0",
+  "description": "Weather Dashboard with Node.js Express Backend and Open-Meteo API",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test.js"
+  },
+  "keywords": [
+    "weather",
+    "dashboard",
+    "express",
+    "open-meteo"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "better-sqlite3": "^13.0.3",
+    "cors": "^2.8.5",
+    "express": "^4.21.2"
+  }
+}
